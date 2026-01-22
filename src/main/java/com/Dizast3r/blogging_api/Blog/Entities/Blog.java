@@ -8,6 +8,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -25,6 +26,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Table(name = "blog")
 public class Blog {
     
     @Id
@@ -32,13 +34,13 @@ public class Blog {
     @Column(name = "blog_id")
     private UUID blogId;
     
-    @Column(name = "fecha de creacion", nullable = false)
+    @Column(name = "fecha_de_creacion", nullable = false)
     private LocalDateTime fechaDeCreacion;
     
     @Column(name = "titulo", length = 30)
     private String titulo;
     
-    @Column(name = "titulo", length = -1)
+    @Column(name = "contenido", length = -1)
     private String contenido;
     
     @ManyToMany

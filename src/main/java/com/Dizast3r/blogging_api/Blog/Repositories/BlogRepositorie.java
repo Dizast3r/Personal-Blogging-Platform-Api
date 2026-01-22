@@ -16,17 +16,18 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface BlogRepositorie extends JpaRepository<Blog, UUID> {
-
-    List<Blog> findByFechaDeCreacion(LocalDateTime fechaDeCreacion);
-
-    @Query(value = "SELECT DISTINCT b.* "
-            + "FROM blog b "
-            + "JOIN blog_tags bt ON b.blog_id = bt.blog_id "
-            + "JOIN tag t ON bt.tag_id = t.tag_id "
-            + "WHERE t.nombre IN :nombresTags",
-            nativeQuery = true)
-    List<Blog> findByTags(@Param("nombresTags") Set<String> nombreTags);
     
-    List<Blog> findByTituloStartingWith(String titulo);
-
+    @Query(value = "SELECT DISTINCT blog.* "
+            + "FROM blog LEFT JOIN tag_map ON (blog.blog_id = tag_map.blog_id) "
+            + "LEFT JOIN tag ON (tag_map.tag_id = tag.tag_id) "
+            + "WHERE ("
+            + "(:titulo IS NULL OR blog.title ILIKE CONCAT('%', :titulo, '%')) "
+            + "AND ((:fecha_minima IS NULL OR blog.fecha_de_creacion >= :fecha_minima)) "
+            + "AND (:fecha_maxima IS NULL OR blog.fecha_de_creacion <= :fecha_maxima)"
+            + "AND (:tag_names IS NULL OR tag.name IN (:tag_names))"
+            + ") ",
+            nativeQuery = true)
+    
+    List<Blog> searchAll (@Param("titulo") String titulo, @Param("fecha_minima") LocalDateTime fechaMinima, @Param("fecha_maxima") LocalDateTime fechaMaxima, 
+                                      @Param("tag_names") Set<String> tagNames);
 }
