@@ -8,10 +8,16 @@ import com.Dizast3r.blogging_api.Blog.Entities.Tag;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface TagRepositorie extends JpaRepository<Tag, UUID>{
+public interface TagRepository extends JpaRepository<Tag, UUID>{
+    
+    @Query(value = "SELECT * FROM tag WHERE nombre ILIKE CONCAT('%', :nombre, '%')",
+            nativeQuery = true)
+    List<Tag> findByNombreLike(@Param("nombre") String nombre);
     
     List<Tag> findByNombre(String nombre);
 }

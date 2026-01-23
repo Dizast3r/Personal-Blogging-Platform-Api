@@ -9,13 +9,15 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 /**
  *
@@ -35,7 +37,12 @@ public class Blog {
     private UUID blogId;
     
     @Column(name = "fecha_de_creacion", nullable = false)
-    private LocalDateTime fechaDeCreacion;
+    @CreationTimestamp
+    private Instant fechaDeCreacion;
+    
+    @Column(name = "fecha_de_modificacion", nullable = false)
+    @UpdateTimestamp
+    private Instant fechaDeModificacion;
     
     @Column(name = "titulo", length = 30)
     private String titulo;
@@ -49,5 +56,7 @@ public class Blog {
             joinColumns = @JoinColumn(name = "blog_id"),
             inverseJoinColumns = @JoinColumn(name = "tag_id")
     )
+    @lombok.EqualsAndHashCode.Exclude
+    @lombok.ToString.Exclude
     private Set<Tag> blogTags = new HashSet<>();
 }

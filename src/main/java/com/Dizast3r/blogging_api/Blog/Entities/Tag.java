@@ -12,9 +12,11 @@ import java.util.Set;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 @Entity
 @Table(name = "tag")
 public class Tag {
@@ -28,5 +30,7 @@ public class Tag {
     private String nombre;
     
     @ManyToMany(mappedBy = "blogTags")
+    @lombok.EqualsAndHashCode.Exclude
+    @lombok.ToString.Exclude
     private Set<Blog> blogs = new HashSet<>();    
 }

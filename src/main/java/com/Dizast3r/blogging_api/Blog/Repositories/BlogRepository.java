@@ -15,16 +15,16 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface BlogRepositorie extends JpaRepository<Blog, UUID> {
+public interface BlogRepository extends JpaRepository<Blog, UUID> {
     
     @Query(value = "SELECT DISTINCT blog.* "
             + "FROM blog LEFT JOIN tag_map ON (blog.blog_id = tag_map.blog_id) "
             + "LEFT JOIN tag ON (tag_map.tag_id = tag.tag_id) "
             + "WHERE ("
-            + "(:titulo IS NULL OR blog.title ILIKE CONCAT('%', :titulo, '%')) "
+            + "(:titulo IS NULL OR blog.titulo ILIKE CONCAT('%', :titulo, '%')) "
             + "AND ((:fecha_minima IS NULL OR blog.fecha_de_creacion >= :fecha_minima)) "
             + "AND (:fecha_maxima IS NULL OR blog.fecha_de_creacion <= :fecha_maxima)"
-            + "AND (:tag_names IS NULL OR tag.name IN (:tag_names))"
+            + "AND (:tag_names IS NULL OR tag.nombre IN (:tag_names))"
             + ") ",
             nativeQuery = true)
     
