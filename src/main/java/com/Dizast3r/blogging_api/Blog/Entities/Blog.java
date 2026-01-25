@@ -44,7 +44,7 @@ public class Blog {
     @UpdateTimestamp
     private Instant fechaDeModificacion;
     
-    @Column(name = "titulo", length = 30)
+    @Column(name = "titulo", length = 30, unique = true)
     private String titulo;
     
     @Column(name = "contenido", length = -1)

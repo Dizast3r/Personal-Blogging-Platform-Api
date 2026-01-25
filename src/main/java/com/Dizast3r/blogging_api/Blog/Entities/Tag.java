@@ -1,5 +1,6 @@
 package com.Dizast3r.blogging_api.Blog.Entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -32,5 +33,6 @@ public class Tag {
     @ManyToMany(mappedBy = "blogTags")
     @lombok.EqualsAndHashCode.Exclude
     @lombok.ToString.Exclude
+    @JsonIgnore
     private Set<Blog> blogs = new HashSet<>();    
 }
