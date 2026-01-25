@@ -1,8 +1,6 @@
 package com.Dizast3r.blogging_api.Blog.DTO.Response;
 
 import com.Dizast3r.blogging_api.Blog.Entities.Tag;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.UUID;
@@ -15,11 +13,8 @@ public class BlogResponseDTO {
     
     private UUID blogid;
     
-    @NotBlank(message = "El titulo es obligatorio")
-    @Size(max = 30, message = "El titulo no puede tener mas de 30 caracteres")
     private String titulo;
-    
-    @NotBlank(message = "El Contenido es obligatorio")
+
     private String contenido;
     
     private LocalDateTime fechaDeCreacion;

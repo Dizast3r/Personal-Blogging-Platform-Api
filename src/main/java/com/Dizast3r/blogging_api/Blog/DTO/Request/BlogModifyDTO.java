@@ -1,13 +1,28 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
+
 package com.Dizast3r.blogging_api.Blog.DTO.Request;
 
-/**
- *
- * @author User
- */
+import com.Dizast3r.blogging_api.Blog.Entities.Tag;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import java.time.LocalDateTime;
+import java.util.Set;
+import java.util.UUID;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+
+@Data
+@AllArgsConstructor
 public class BlogModifyDTO {
+    private UUID blogid;
     
+    @NotBlank(message = "El titulo es obligatorio")
+    @Size(max = 30, message = "El titulo no puede tener mas de 30 caracteres")
+    private String titulo;
+    
+    @NotBlank(message = "El Contenido es obligatorio")
+    private String contenido;
+    
+    private LocalDateTime fechaDeCreacion;
+    
+    private Set<Tag> blogTags;
 }

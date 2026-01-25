@@ -4,10 +4,14 @@
  */
 package com.Dizast3r.blogging_api.Blog.DTO.Request;
 
-/**
- *
- * @author User
- */
-public class BlogDeleteDTO {
-    
+import jakarta.validation.constraints.NotBlank;
+import java.util.UUID;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+
+@Data
+@AllArgsConstructor
+public class BlogDeleteDTO {    
+    @NotBlank(message = "Es obligatorio añadir el ID")
+    private UUID blogid;
 }
