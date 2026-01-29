@@ -1,6 +1,6 @@
-package com.Dizast3r.blogging_api.Blog.DTO.Mappers;
+package com.Dizast3r.blogging_api.Blog.DTO.Mappers.Blog;
 
-import com.Dizast3r.blogging_api.Blog.DTO.Response.BlogResponseDTO;
+import com.Dizast3r.blogging_api.Blog.DTO.Response.Blog.BlogResponseDTO;
 import com.Dizast3r.blogging_api.Blog.Entities.Blog;
 import com.Dizast3r.blogging_api.Blog.Entities.Tag;
 import java.util.List;

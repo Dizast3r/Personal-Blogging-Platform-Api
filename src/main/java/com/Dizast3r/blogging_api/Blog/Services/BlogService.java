@@ -4,9 +4,9 @@
  */
 package com.Dizast3r.blogging_api.Blog.Services;
 
-import com.Dizast3r.blogging_api.Blog.DTO.Request.BlogCreateDTO;
-import com.Dizast3r.blogging_api.Blog.DTO.Request.BlogModifyDTO;
-import com.Dizast3r.blogging_api.Blog.DTO.Response.BlogResponseDTO;
+import com.Dizast3r.blogging_api.Blog.DTO.Request.Blog.BlogCreateDTO;
+import com.Dizast3r.blogging_api.Blog.DTO.Request.Blog.BlogModifyDTO;
+import com.Dizast3r.blogging_api.Blog.DTO.Response.Blog.BlogResponseDTO;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;

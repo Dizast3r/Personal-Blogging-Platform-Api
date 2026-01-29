@@ -1,11 +1,14 @@
 package com.Dizast3r.blogging_api.Blog.Services.Implementation;
 
-import com.Dizast3r.blogging_api.Blog.DTO.Mappers.BlogDTOMapper;
-import com.Dizast3r.blogging_api.Blog.DTO.Response.BlogResponseDTO;
+import com.Dizast3r.blogging_api.Blog.DTO.Mappers.Blog.BlogDTOMapper;
+import com.Dizast3r.blogging_api.Blog.DTO.Mappers.Blog.BlogMapper;
+import com.Dizast3r.blogging_api.Blog.DTO.Request.Blog.BlogCreateDTO;
+import com.Dizast3r.blogging_api.Blog.DTO.Request.Tag.TagDTO;
+import com.Dizast3r.blogging_api.Blog.DTO.Response.Blog.BlogResponseDTO;
 import com.Dizast3r.blogging_api.Blog.Entities.Blog;
 import com.Dizast3r.blogging_api.Blog.Entities.Tag;
 import com.Dizast3r.blogging_api.Blog.Repositories.BlogRepository;
-import com.Dizast3r.blogging_api.Blog.Repositories.TagRepository;
+import com.Dizast3r.blogging_api.Blog.Services.TagService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -16,7 +19,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Instant;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -29,23 +31,44 @@ public class BlogServiceImplTest {
     private BlogRepository blogRepository;
 
     @Mock
-    private TagRepository tagRepository;
+    private TagService tagService;
 
     @Mock
     private BlogDTOMapper blogDTOMapper;
+
+    @Mock
+    private BlogMapper blogMapper;
 
     @InjectMocks
     private BlogServiceImpl blogService;
 
     @BeforeEach
     void setUp() {
+        // Mock BlogMapper to convert DTO to Entity
+        lenient().when(blogMapper.toEntityCreate(any(BlogCreateDTO.class))).thenAnswer(invocation -> {
+            BlogCreateDTO dto = invocation.getArgument(0);
+            Blog blog = new Blog();
+            blog.setTitulo(dto.getTitulo());
+            blog.setContenido(dto.getContenido());
+            blog.setFechaDeCreacion(dto.getFechaDeCreacion());
+            return blog;
+        });
+
+        // Mock BlogDTOMapper to convert Entity to Response DTO
         lenient().when(blogDTOMapper.toResponse(any(Blog.class))).thenAnswer(invocation -> {
             Blog blog = invocation.getArgument(0);
-            List<String> tags = new ArrayList<>();
+            List<String> tagNames = new ArrayList<>();
             if (blog.getBlogTags() != null) {
-                tags = blog.getBlogTags().stream().map(Tag::getNombre).collect(Collectors.toList());
+                tagNames = blog.getBlogTags().stream()
+                        .map(Tag::getNombre)
+                        .toList();
             }
-            return new BlogResponseDTO(blog.getTitulo(), blog.getContenido(), blog.getFechaDeCreacion(), tags);
+            return new BlogResponseDTO(
+                    blog.getBlogId(),
+                    blog.getTitulo(),
+                    blog.getContenido(),
+                    blog.getFechaDeCreacion(),
+                    tagNames);
         });
     }
 
@@ -55,77 +78,78 @@ public class BlogServiceImplTest {
     @DisplayName("Should create blog w/ new tags (tags stored with normalized name)")
     public void createBlog_WithNewTags_ShouldSaveAndAssignTags() {
         // Arrange
-        // Input tag has spaces and mixed case " JavA "
-        Tag inputTag = new Tag(null, " JavA  ", new HashSet<>());
-        Set<Tag> inputTags = new HashSet<>();
-        inputTags.add(inputTag);
+        TagDTO tagDTO = new TagDTO();
+        tagDTO.setNombre(" JavA  ");
 
-        Blog newBlog = new Blog();
-        newBlog.setTitulo("My First Blog");
-        newBlog.setBlogTags(inputTags);
+        List<TagDTO> tagDTOs = new ArrayList<>();
+        tagDTOs.add(tagDTO);
 
-        // Mock: Tag doesn't exist initially, but after save it should be found
+        BlogCreateDTO blogCreateDTO = new BlogCreateDTO(
+                "My First Blog",
+                "Content here",
+                Instant.now(),
+                tagDTOs);
+
+        // Mock: TagService creates and returns normalized tag
         Tag savedTag = new Tag(UUID.randomUUID(), "java", new HashSet<>());
+        when(tagService.createTag(any(TagDTO.class))).thenReturn(savedTag);
 
-        when(tagRepository.findByNombre("java"))
-                .thenReturn(Collections.emptyList()) // First call: doesn't exist
-                .thenReturn(List.of(savedTag)); // Subsequent calls: return saved tag
-
-        // Mock: Saving the tag (repo returns the saved entity)
-        when(tagRepository.save(any(Tag.class))).thenReturn(savedTag);
-
-        // Mock: Saving the blog
-        when(blogRepository.save(any(Blog.class))).thenAnswer(i -> i.getArguments()[0]);
+        // Mock: Blog save
+        when(blogRepository.save(any(Blog.class))).thenAnswer(i -> {
+            Blog blog = i.getArgument(0);
+            blog.setBlogId(UUID.randomUUID());
+            return blog;
+        });
 
         // Act
-        BlogResponseDTO result = blogService.createBlog(newBlog);
+        BlogResponseDTO result = blogService.createBlog(blogCreateDTO);
 
         // Assert
         assertNotNull(result);
+        assertNotNull(result.getBlogId());
         assertEquals(1, result.getBlogTags().size());
-        String resultTag = result.getBlogTags().iterator().next();
+        assertEquals("java", result.getBlogTags().get(0));
 
-        // Check normalization
-        assertEquals("java", resultTag);
-        assertNotNull(tagRepository.findByNombre(resultTag).get(0).getTagId()); // Should be the saved one
-
-        verify(tagRepository).save(any(Tag.class)); // Verifies save was called
-        verify(blogRepository).save(newBlog);
+        verify(tagService).createTag(any(TagDTO.class));
+        verify(blogRepository).save(any(Blog.class));
     }
 
     @Test
     @DisplayName("Should create blog w/ existing tags (deduplication)")
     public void createBlog_WithExistingTags_ShouldReuseTagFromDB() {
         // Arrange
-        // Input: "java"
-        Tag inputTag = new Tag(null, "java", new HashSet<>());
-        Set<Tag> inputTags = new HashSet<>();
-        inputTags.add(inputTag);
+        TagDTO tagDTO = new TagDTO();
+        tagDTO.setNombre("java");
 
-        Blog newBlog = new Blog();
-        newBlog.setTitulo("Java Blog");
-        newBlog.setBlogTags(inputTags);
+        List<TagDTO> tagDTOs = new ArrayList<>();
+        tagDTOs.add(tagDTO);
 
-        // Mock: Tag ALREADY exists in DB
-        Tag existingDbTag = new Tag(UUID.randomUUID(), "java", new HashSet<>());
-        when(tagRepository.findByNombre("java")).thenReturn(List.of(existingDbTag));
+        BlogCreateDTO blogCreateDTO = new BlogCreateDTO(
+                "Java Blog",
+                "Content about Java",
+                Instant.now(),
+                tagDTOs);
+
+        // Mock: TagService returns existing tag (deduplication happens in TagService)
+        Tag existingTag = new Tag(UUID.randomUUID(), "java", new HashSet<>());
+        when(tagService.createTag(any(TagDTO.class))).thenReturn(existingTag);
 
         // Mock: Blog save
-        when(blogRepository.save(any(Blog.class))).thenAnswer(i -> i.getArguments()[0]);
+        when(blogRepository.save(any(Blog.class))).thenAnswer(i -> {
+            Blog blog = i.getArgument(0);
+            blog.setBlogId(UUID.randomUUID());
+            return blog;
+        });
 
         // Act
-        BlogResponseDTO result = blogService.createBlog(newBlog);
+        BlogResponseDTO result = blogService.createBlog(blogCreateDTO);
 
         // Assert
         assertEquals(1, result.getBlogTags().size());
-        String resultTag = result.getBlogTags().iterator().next();
+        assertEquals("java", result.getBlogTags().get(0));
 
-        // Should contain the ID from the existing tag
-        assertEquals(existingDbTag.getTagId(), tagRepository.findByNombre(resultTag).get(0).getTagId());
-
-        // Verify Tag SAVE was NEVER called (deduplication success)
-        verify(tagRepository, never()).save(any(Tag.class));
-        verify(blogRepository).save(newBlog);
+        verify(tagService).createTag(any(TagDTO.class));
+        verify(blogRepository).save(any(Blog.class));
     }
 
     // --- Edge Cases ---
@@ -134,70 +158,79 @@ public class BlogServiceImplTest {
     @DisplayName("Should handle Mixed Tags (One new, One existing)")
     public void createBlog_WithMixedTags_ShouldHandleBothcorrectly() {
         // Arrange
-        Tag tagNew = new Tag(null, "python", new HashSet<>());
-        Tag tagExisting = new Tag(null, "java", new HashSet<>());
+        TagDTO tagDTO1 = new TagDTO();
+        tagDTO1.setNombre("python");
 
-        Set<Tag> tags = new HashSet<>();
-        tags.add(tagNew);
-        tags.add(tagExisting);
+        TagDTO tagDTO2 = new TagDTO();
+        tagDTO2.setNombre("java");
 
-        Blog blog = new Blog();
-        blog.setTitulo("Polyglot");
-        blog.setBlogTags(tags);
+        List<TagDTO> tagDTOs = new ArrayList<>();
+        tagDTOs.add(tagDTO1);
+        tagDTOs.add(tagDTO2);
 
-        // Mocking
-        Tag existingJava = new Tag(UUID.randomUUID(), "java", new HashSet<>());
-        Tag savedPython = new Tag(UUID.randomUUID(), "python", new HashSet<>());
+        BlogCreateDTO blogCreateDTO = new BlogCreateDTO(
+                "Polyglot",
+                "Content about multiple languages",
+                Instant.now(),
+                tagDTOs);
 
-        // "python" -> New (Empty list initially, then return saved)
-        when(tagRepository.findByNombre("python"))
-                .thenReturn(Collections.emptyList()) // First call: doesn't exist
-                .thenReturn(List.of(savedPython)); // Subsequent calls: return saved tag
+        // Mock: TagService handles both new and existing tags
+        Tag pythonTag = new Tag(UUID.randomUUID(), "python", new HashSet<>());
+        Tag javaTag = new Tag(UUID.randomUUID(), "java", new HashSet<>());
 
-        // "java" -> Exists (always return existing)
-        when(tagRepository.findByNombre("java")).thenReturn(List.of(existingJava));
+        // Use thenAnswer to inspect the actual argument and return appropriate tag
+        when(tagService.createTag(any(TagDTO.class))).thenAnswer(invocation -> {
+            TagDTO dto = invocation.getArgument(0);
+            if (dto.getNombre().equals("python")) {
+                return pythonTag;
+            } else if (dto.getNombre().equals("java")) {
+                return javaTag;
+            }
+            return null;
+        });
 
-        // Mock Save for new tag
-        when(tagRepository.save(argThat(t -> t.getNombre().equals("python")))).thenReturn(savedPython);
-
-        when(blogRepository.save(any(Blog.class))).thenAnswer(i -> i.getArgument(0));
+        // Mock: Blog save
+        when(blogRepository.save(any(Blog.class))).thenAnswer(i -> {
+            Blog blog = i.getArgument(0);
+            blog.setBlogId(UUID.randomUUID());
+            return blog;
+        });
 
         // Act
-        BlogResponseDTO result = blogService.createBlog(blog);
+        BlogResponseDTO result = blogService.createBlog(blogCreateDTO);
 
         // Assert
         assertEquals(2, result.getBlogTags().size());
+        assertTrue(result.getBlogTags().contains("java"));
+        assertTrue(result.getBlogTags().contains("python"));
 
-        // Check IDs
-        boolean foundJava = result.getBlogTags().stream()
-                .anyMatch(t -> tagRepository.findByNombre(t).get(0).getTagId().equals(existingJava.getTagId()));
-        boolean foundPython = result.getBlogTags().stream()
-                .anyMatch(t -> tagRepository.findByNombre(t).get(0).getTagId().equals(savedPython.getTagId()));
-
-        assertTrue(foundJava, "Should have reused existing Java tag");
-        assertTrue(foundPython, "Should have used new saved Python tag");
-
-        // Verify only 1 save called for tags
-        verify(tagRepository, times(1)).save(any(Tag.class));
+        verify(tagService, times(2)).createTag(any(TagDTO.class));
+        verify(blogRepository).save(any(Blog.class));
     }
 
     @Test
     @DisplayName("Should handle empty tags list")
     public void createBlog_WithNoTags_ShouldSaveBlog() {
         // Arrange
-        Blog blog = new Blog();
-        blog.setTitulo("No Tags Blog");
-        blog.setBlogTags(new HashSet<>()); // Empty
+        BlogCreateDTO blogCreateDTO = new BlogCreateDTO(
+                "No Tags Blog",
+                "Content without tags",
+                Instant.now(),
+                new ArrayList<>());
 
-        when(blogRepository.save(any(Blog.class))).thenAnswer(i -> i.getArgument(0));
+        // Mock: Blog save
+        when(blogRepository.save(any(Blog.class))).thenAnswer(i -> {
+            Blog blog = i.getArgument(0);
+            blog.setBlogId(UUID.randomUUID());
+            return blog;
+        });
 
         // Act
-        BlogResponseDTO result = blogService.createBlog(blog);
+        BlogResponseDTO result = blogService.createBlog(blogCreateDTO);
 
         // Assert
         assertTrue(result.getBlogTags().isEmpty());
-        verify(tagRepository, never()).findByNombre(anyString());
-        verify(tagRepository, never()).save(any(Tag.class));
-        verify(blogRepository).save(blog);
+        verify(tagService, never()).createTag(any(TagDTO.class));
+        verify(blogRepository).save(any(Blog.class));
     }
 }

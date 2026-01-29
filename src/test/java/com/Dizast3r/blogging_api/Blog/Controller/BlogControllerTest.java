@@ -1,7 +1,8 @@
 package com.Dizast3r.blogging_api.Blog.Controller;
 
-import com.Dizast3r.blogging_api.Blog.DTO.Response.BlogResponseDTO;
-import com.Dizast3r.blogging_api.Blog.Entities.Blog;
+import com.Dizast3r.blogging_api.Blog.DTO.Request.Blog.BlogCreateDTO;
+import com.Dizast3r.blogging_api.Blog.DTO.Request.Tag.TagDTO;
+import com.Dizast3r.blogging_api.Blog.DTO.Response.Blog.BlogResponseDTO;
 import com.Dizast3r.blogging_api.Blog.Services.BlogService;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,7 +13,6 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
 
@@ -38,36 +38,54 @@ public class BlogControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    private Blog blog;
+    private BlogCreateDTO blogCreateDTO;
     private BlogResponseDTO blogResponseDTO;
+    private UUID blogId;
 
     @BeforeEach
     void setUp() {
-        blog = new Blog();
-        blog.setBlogId(UUID.randomUUID());
-        blog.setTitulo("Test Blog Title");
-        blog.setContenido("Test Blog Content");
-        blog.setFechaDeCreacion(Instant.now());
-        blog.setFechaDeModificacion(Instant.now());
-        blog.setBlogTags(new HashSet<>());
+        blogId = UUID.randomUUID();
+
+        // Setup TagDTOs
+        TagDTO tag1 = new TagDTO();
+        tag1.setNombre("Java");
+
+        TagDTO tag2 = new TagDTO();
+        tag2.setNombre("Spring Boot");
+
+        List<TagDTO> tags = new ArrayList<>();
+        tags.add(tag1);
+        tags.add(tag2);
+
+        // Setup BlogCreateDTO
+        blogCreateDTO = new BlogCreateDTO(
+                "Test Blog Title",
+                "Test Blog Content",
+                Instant.now(),
+                tags);
 
         // Setup expected Response DTO
         List<String> tagNames = new ArrayList<>();
+        tagNames.add("java");
+        tagNames.add("spring boot");
+
         blogResponseDTO = new BlogResponseDTO(
-                blog.getTitulo(),
-                blog.getContenido(),
-                blog.getFechaDeCreacion(),
+                blogId,
+                "Test Blog Title",
+                "Test Blog Content",
+                Instant.now(),
                 tagNames);
     }
 
     @Test
     void createBlog_Success() throws Exception {
-        when(blogService.createBlog(any(Blog.class))).thenReturn(blogResponseDTO);
+        when(blogService.createBlog(any(BlogCreateDTO.class))).thenReturn(blogResponseDTO);
 
         mockMvc.perform(post("/blog")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(blog)))
+                .content(objectMapper.writeValueAsString(blogCreateDTO)))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.blogId").value(blogResponseDTO.getBlogId().toString()))
                 .andExpect(jsonPath("$.titulo").value(blogResponseDTO.getTitulo()))
                 .andExpect(jsonPath("$.contenido").value(blogResponseDTO.getContenido()));
     }
@@ -85,10 +103,11 @@ public class BlogControllerTest {
 
     @Test
     void getBlogById_Success() throws Exception {
-        when(blogService.getBlogById(blog.getBlogId())).thenReturn(blogResponseDTO);
+        when(blogService.getBlogById(blogId)).thenReturn(blogResponseDTO);
 
-        mockMvc.perform(get("/blog/" + blog.getBlogId()))
+        mockMvc.perform(get("/blog/" + blogId))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.blogId").value(blogId.toString()))
                 .andExpect(jsonPath("$.titulo").value(blogResponseDTO.getTitulo()));
     }
 
@@ -100,16 +119,6 @@ public class BlogControllerTest {
 
         // Since we don't have a GlobalExceptionHandler yet, Spring Boot's default error
         // handling might return 404 or just bubble up the exception.
-        // We will assert on the exception type for now if it bubbles up, or 404 if
-        // mapped.
-        // Checking if it throws exception as slice test without advice might let it
-        // bubble or return 404 depending on boot version default.
-        // Let's expect 404 or internal server error, usually default is 500 without
-        // mapping, but EntityNotFound might be mapped to 404 in some setups.
-        // Given user asked for NO extra code, we accept whatever default behavior is
-        // for now or just that it fails.
-        // But to make a robust test without changing main code, we can expect the
-        // default ServletException wrapper.
 
         try {
             mockMvc.perform(get("/blog/" + nonExistentId))

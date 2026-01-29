@@ -4,6 +4,7 @@
  */
 package com.Dizast3r.blogging_api.Blog.Services;
 
+import com.Dizast3r.blogging_api.Blog.DTO.Request.Tag.TagDTO;
 import com.Dizast3r.blogging_api.Blog.Entities.Tag;
 import java.util.List;
 import java.util.UUID;
@@ -14,9 +15,10 @@ import java.util.UUID;
  */
 public interface TagService {
     
+    public Tag createTag(TagDTO tagDTO);
     public List<Tag> getAllTags();
     public Tag getTagById(UUID id);
-    public List<Tag> getTagByName();
+    public List<Tag> getTagByName(TagDTO tagDTO);
     public void deleteTag(UUID id);
-    public void modifyTag(Tag tag);
+    public void modifyTag(TagDTO tag, UUID id);
 }

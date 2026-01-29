@@ -4,9 +4,8 @@
  */
 package com.Dizast3r.blogging_api.Blog.Controller;
 
-import com.Dizast3r.blogging_api.Blog.DTO.Mappers.BlogDTOMapper;
-import com.Dizast3r.blogging_api.Blog.DTO.Response.BlogResponseDTO;
-import com.Dizast3r.blogging_api.Blog.Entities.Blog;
+import com.Dizast3r.blogging_api.Blog.DTO.Request.Blog.BlogCreateDTO;
+import com.Dizast3r.blogging_api.Blog.DTO.Response.Blog.BlogResponseDTO;
 import com.Dizast3r.blogging_api.Blog.Services.BlogService;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,8 +25,8 @@ public class BlogController {
     private BlogService blogService;
 
     @PostMapping
-    public BlogResponseDTO createBlog(@RequestBody Blog blog) {
-        return blogService.createBlog(blog);
+    public BlogResponseDTO createBlog(@RequestBody BlogCreateDTO blogDTO) {
+        return blogService.createBlog(blogDTO);
     }
 
     @GetMapping("/{id}")
