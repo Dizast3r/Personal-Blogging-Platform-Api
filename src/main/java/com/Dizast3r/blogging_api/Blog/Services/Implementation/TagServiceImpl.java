@@ -10,6 +10,7 @@ import com.Dizast3r.blogging_api.Blog.DTO.Request.Tag.TagDTO;
 import com.Dizast3r.blogging_api.Blog.Entities.Tag;
 import com.Dizast3r.blogging_api.Blog.Repositories.TagRepository;
 import com.Dizast3r.blogging_api.Blog.Services.TagService;
+import java.text.Normalizer;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +31,13 @@ public class TagServiceImpl implements TagService {
 
     @Autowired
     TagMapper mapperEntity;
+    
+    private String normalizarTexto(String texto) {
+    return Normalizer.normalize(texto, Normalizer.Form.NFD)
+                     .replaceAll("\\p{M}", "")
+                     .toLowerCase()
+                     .trim();
+}
 
     @Override
     public Tag createTag(TagDTO tagDTO) {
@@ -37,11 +45,11 @@ public class TagServiceImpl implements TagService {
         List<Tag> tagsEnLaDB = tagRepository.findByNombre(tagGuardar.getNombre().toLowerCase().trim());
 
         if (tagsEnLaDB.isEmpty()) {
-            tagGuardar.setNombre(tagGuardar.getNombre().toLowerCase().trim());
+            tagGuardar.setNombre(normalizarTexto(tagGuardar.getNombre()));
             return tagRepository.save(tagGuardar);
         }
 
-        return tagGuardar;
+        return tagsEnLaDB.get(0);
     }
 
     @Override
