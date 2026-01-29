@@ -4,6 +4,8 @@
  */
 package com.Dizast3r.blogging_api.Blog.Controller;
 
+import com.Dizast3r.blogging_api.Blog.DTO.Mappers.BlogDTOMapper;
+import com.Dizast3r.blogging_api.Blog.DTO.Response.BlogResponseDTO;
 import com.Dizast3r.blogging_api.Blog.Entities.Blog;
 import com.Dizast3r.blogging_api.Blog.Services.BlogService;
 import java.util.UUID;
@@ -24,12 +26,12 @@ public class BlogController {
     private BlogService blogService;
 
     @PostMapping
-    public Blog createBlog(@RequestBody Blog blog) {
+    public BlogResponseDTO createBlog(@RequestBody Blog blog) {
         return blogService.createBlog(blog);
     }
 
     @GetMapping("/{id}")
-    public Blog getBlogById(@PathVariable UUID id) {
+    public BlogResponseDTO getBlogById(@PathVariable UUID id) {
         return blogService.getBlogById(id);
     }
 

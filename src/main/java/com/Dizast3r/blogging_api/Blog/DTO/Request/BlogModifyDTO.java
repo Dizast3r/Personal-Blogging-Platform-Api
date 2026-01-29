@@ -1,11 +1,9 @@
 
 package com.Dizast3r.blogging_api.Blog.DTO.Request;
 
-import com.Dizast3r.blogging_api.Blog.Entities.Tag;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import java.time.LocalDateTime;
-import java.util.Set;
+import java.util.List;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -13,6 +11,7 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class BlogModifyDTO {
+    @NotBlank(message = "Es obligatorio añadir el ID")
     private UUID blogid;
     
     @NotBlank(message = "El titulo es obligatorio")
@@ -22,7 +21,5 @@ public class BlogModifyDTO {
     @NotBlank(message = "El Contenido es obligatorio")
     private String contenido;
     
-    private LocalDateTime fechaDeCreacion;
-    
-    private Set<Tag> blogTags;
+    private List<String> blogTags;
 }

@@ -1,22 +1,25 @@
 package com.Dizast3r.blogging_api.Blog.Controller;
 
+import com.Dizast3r.blogging_api.Blog.DTO.Response.BlogResponseDTO;
 import com.Dizast3r.blogging_api.Blog.Entities.Blog;
 import com.Dizast3r.blogging_api.Blog.Services.BlogService;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -29,13 +32,14 @@ public class BlogControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
+    @MockitoBean
     private BlogService blogService;
 
     @Autowired
     private ObjectMapper objectMapper;
 
     private Blog blog;
+    private BlogResponseDTO blogResponseDTO;
 
     @BeforeEach
     void setUp() {
@@ -46,18 +50,26 @@ public class BlogControllerTest {
         blog.setFechaDeCreacion(Instant.now());
         blog.setFechaDeModificacion(Instant.now());
         blog.setBlogTags(new HashSet<>());
+
+        // Setup expected Response DTO
+        List<String> tagNames = new ArrayList<>();
+        blogResponseDTO = new BlogResponseDTO(
+                blog.getTitulo(),
+                blog.getContenido(),
+                blog.getFechaDeCreacion(),
+                tagNames);
     }
 
     @Test
     void createBlog_Success() throws Exception {
-        when(blogService.createBlog(any(Blog.class))).thenReturn(blog);
+        when(blogService.createBlog(any(Blog.class))).thenReturn(blogResponseDTO);
 
         mockMvc.perform(post("/blog")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(blog)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.titulo").value(blog.getTitulo()))
-                .andExpect(jsonPath("$.contenido").value(blog.getContenido()));
+                .andExpect(jsonPath("$.titulo").value(blogResponseDTO.getTitulo()))
+                .andExpect(jsonPath("$.contenido").value(blogResponseDTO.getContenido()));
     }
 
     @Test
@@ -73,11 +85,11 @@ public class BlogControllerTest {
 
     @Test
     void getBlogById_Success() throws Exception {
-        when(blogService.getBlogById(blog.getBlogId())).thenReturn(blog);
+        when(blogService.getBlogById(blog.getBlogId())).thenReturn(blogResponseDTO);
 
         mockMvc.perform(get("/blog/" + blog.getBlogId()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.titulo").value(blog.getTitulo()));
+                .andExpect(jsonPath("$.titulo").value(blogResponseDTO.getTitulo()));
     }
 
     @Test

@@ -4,6 +4,9 @@
  */
 package com.Dizast3r.blogging_api.Blog.Services.Implementation;
 
+import com.Dizast3r.blogging_api.Blog.DTO.Mappers.BlogDTOMapper;
+import com.Dizast3r.blogging_api.Blog.DTO.Mappers.BlogMapper;
+import com.Dizast3r.blogging_api.Blog.DTO.Response.BlogResponseDTO;
 import com.Dizast3r.blogging_api.Blog.Entities.Blog;
 import com.Dizast3r.blogging_api.Blog.Entities.Tag;
 import com.Dizast3r.blogging_api.Blog.Services.BlogService;
@@ -17,6 +20,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class BlogServiceImpl implements BlogService {
@@ -26,9 +30,15 @@ public class BlogServiceImpl implements BlogService {
 
     @Autowired
     private TagRepository tagRepository;
+    
+    @Autowired
+    private BlogDTOMapper mapperDTO;
+    
+    @Autowired
+    private BlogMapper mapperEntity;
 
     @Override
-    public Blog createBlog(Blog blog) {
+    public BlogResponseDTO createBlog(Blog blog) {
 
         Set<Tag> blogTags = new HashSet();
         for (Tag tag : blog.getBlogTags()) {
@@ -48,18 +58,18 @@ public class BlogServiceImpl implements BlogService {
         blogGuardadoDB.setBlogTags(blogTags);
         blogRepository.save(blogGuardadoDB);
 
-        return blogGuardadoDB;
+        return mapperDTO.toResponse(blogGuardadoDB);
     }
 
     @Override
-    public Blog getBlogById(UUID id) {
+    public BlogResponseDTO getBlogById(UUID id) {
         Blog blogDevolver = blogRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("No se encontro blog con el id dado"));
-        return blogDevolver;
+        return mapperDTO.toResponse(blogDevolver);
     }
 
     @Override
-    public List<Blog> searchBlog(String titulo, LocalDateTime fechaMinima, LocalDateTime fechaMaxima, Set<String> tagNames) {
-        return blogRepository.searchAll(titulo, fechaMinima, fechaMaxima, tagNames);
+    public List<BlogResponseDTO> searchBlog(String titulo, LocalDateTime fechaMinima, LocalDateTime fechaMaxima, Set<String> tagNames) {
+        return blogRepository.searchAll(titulo, fechaMinima, fechaMaxima, tagNames).stream().map(mapperDTO::toResponse).collect(Collectors.toList());
     }
 
     @Override

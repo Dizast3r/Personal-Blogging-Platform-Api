@@ -1,9 +1,7 @@
 package com.Dizast3r.blogging_api.Blog.DTO.Response;
 
-import com.Dizast3r.blogging_api.Blog.Entities.Tag;
-import java.time.LocalDateTime;
-import java.util.Set;
-import java.util.UUID;
+import java.time.Instant;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -11,13 +9,11 @@ import lombok.Data;
 @AllArgsConstructor
 public class BlogResponseDTO {
     
-    private UUID blogid;
-    
     private String titulo;
 
     private String contenido;
     
-    private LocalDateTime fechaDeCreacion;
+    private Instant fechaDeCreacion;
     
-    private Set<Tag> blogTags;
+    private List<String> blogTags;
 }
