@@ -8,6 +8,7 @@ import com.Dizast3r.blogging_api.Blog.DTO.Mappers.Blog.BlogDTOMapper;
 import com.Dizast3r.blogging_api.Blog.DTO.Mappers.Blog.BlogMapper;
 import com.Dizast3r.blogging_api.Blog.DTO.Request.Blog.BlogCreateDTO;
 import com.Dizast3r.blogging_api.Blog.DTO.Request.Blog.BlogModifyDTO;
+import com.Dizast3r.blogging_api.Blog.DTO.Request.Blog.BlogSearchDTO;
 import com.Dizast3r.blogging_api.Blog.DTO.Request.Tag.TagDTO;
 import com.Dizast3r.blogging_api.Blog.DTO.Response.Blog.BlogResponseDTO;
 import com.Dizast3r.blogging_api.Blog.Entities.Blog;
@@ -18,7 +19,6 @@ import org.springframework.stereotype.Service;
 import com.Dizast3r.blogging_api.Blog.Repositories.BlogRepository;
 import com.Dizast3r.blogging_api.Blog.Services.TagService;
 import jakarta.persistence.EntityNotFoundException;
-import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -62,15 +62,31 @@ public class BlogServiceImpl implements BlogService {
     }
 
     @Override
-    public List<BlogResponseDTO> searchBlog(String titulo, LocalDateTime fechaMinima, LocalDateTime fechaMaxima,
-            Set<String> tagNames) {
-        return blogRepository.searchAll(titulo, fechaMinima, fechaMaxima, tagNames).stream().map(mapperDTO::toResponse)
+    public List<BlogResponseDTO> searchBlog(BlogSearchDTO blogSearchDTO) {
+
+        if (blogSearchDTO.isEmpty()) {
+            return blogRepository.findAll().stream().map(mapperDTO::toResponse).collect(Collectors.toList());
+        }
+
+        return blogRepository.searchAll(blogSearchDTO.getTitulo(),
+                blogSearchDTO.getFechaMinima(),
+                blogSearchDTO.getFechaMaxima(),
+                blogSearchDTO.getTagNames()).stream().map(mapperDTO::toResponse)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public void modifyBlog(BlogModifyDTO blog) {
-
+    public void modifyBlog(BlogModifyDTO blogDTO, UUID id) {
+        Blog nuevoBlogInfo = mapperEntity.toEntityModify(blogDTO);
+        Blog blogActualizar = blogRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("No se encontro blog con el id dado"));
+        blogActualizar.setTitulo(nuevoBlogInfo.getTitulo());
+        blogActualizar.setContenido(nuevoBlogInfo.getContenido());
+        Set<Tag> nuevosBlogTags = new HashSet<>();
+        for (TagDTO tagDTO : blogDTO.getBlogTags()) {
+            nuevosBlogTags.add(tagService.createTag(tagDTO));
+        }
+        blogActualizar.setBlogTags(nuevosBlogTags);
+        blogRepository.save(blogActualizar);
     }
 
     @Override

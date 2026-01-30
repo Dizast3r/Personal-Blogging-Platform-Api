@@ -10,6 +10,7 @@ import com.Dizast3r.blogging_api.Blog.DTO.Request.Tag.TagDTO;
 import com.Dizast3r.blogging_api.Blog.Entities.Tag;
 import com.Dizast3r.blogging_api.Blog.Repositories.TagRepository;
 import com.Dizast3r.blogging_api.Blog.Services.TagService;
+import jakarta.persistence.EntityNotFoundException;
 import java.text.Normalizer;
 import java.util.List;
 import java.util.UUID;
@@ -42,7 +43,7 @@ public class TagServiceImpl implements TagService {
     @Override
     public Tag createTag(TagDTO tagDTO) {
         Tag tagGuardar = mapperEntity.toEntity(tagDTO);
-        List<Tag> tagsEnLaDB = tagRepository.findByNombre(tagGuardar.getNombre().toLowerCase().trim());
+        List<Tag> tagsEnLaDB = tagRepository.findByNombre(normalizarTexto(tagGuardar.getNombre()));
 
         if (tagsEnLaDB.isEmpty()) {
             tagGuardar.setNombre(normalizarTexto(tagGuardar.getNombre()));
@@ -54,32 +55,30 @@ public class TagServiceImpl implements TagService {
 
     @Override
     public Tag getTagById(UUID id) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from
-                                                                       // nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        return tagRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("No se encontro blog con el id dado"));
     }
 
     @Override
     public List<Tag> getTagByName(TagDTO tagDTO) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from
-                                                                       // nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        return tagRepository.findByNombreLike(tagDTO.getNombre());
     }
 
     @Override
     public List<Tag> getAllTags() {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from
-                                                                       // nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        return tagRepository.findAll();
     }
 
     @Override
     public void deleteTag(UUID id) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from
-                                                                       // nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        tagRepository.deleteById(id);
     }
 
     @Override
     public void modifyTag(TagDTO tag, UUID id) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from
-                                                                       // nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        Tag tagNuevo = tagRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("No se encontro tag con el id dado"));
+        tagNuevo.setNombre(tag.getNombre());
+        tagRepository.save(tagNuevo);
     }
 
 }

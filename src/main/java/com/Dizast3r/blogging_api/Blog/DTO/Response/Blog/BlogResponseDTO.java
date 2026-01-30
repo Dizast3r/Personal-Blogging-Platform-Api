@@ -1,6 +1,6 @@
 package com.Dizast3r.blogging_api.Blog.DTO.Response.Blog;
 
-import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
@@ -16,7 +16,9 @@ public class BlogResponseDTO {
 
     private String contenido;
     
-    private Instant fechaDeCreacion;
+    private LocalDate fechaDeCreacion;
+    
+    private LocalDate fechaDeModificacion;
     
     private List<String> blogTags;
 }

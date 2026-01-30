@@ -11,7 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.Instant;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -61,7 +61,6 @@ public class BlogControllerTest {
         blogCreateDTO = new BlogCreateDTO(
                 "Test Blog Title",
                 "Test Blog Content",
-                Instant.now(),
                 tags);
 
         // Setup expected Response DTO
@@ -73,7 +72,8 @@ public class BlogControllerTest {
                 blogId,
                 "Test Blog Title",
                 "Test Blog Content",
-                Instant.now(),
+                LocalDate.now(),
+                LocalDate.now(),
                 tagNames);
     }
 

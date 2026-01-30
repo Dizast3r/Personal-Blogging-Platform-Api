@@ -9,7 +9,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
-import java.time.Instant;
+import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -38,11 +38,11 @@ public class Blog {
     
     @Column(name = "fecha_de_creacion", nullable = false)
     @CreationTimestamp
-    private Instant fechaDeCreacion;
+    private LocalDate fechaDeCreacion;
     
     @Column(name = "fecha_de_modificacion", nullable = false)
     @UpdateTimestamp
-    private Instant fechaDeModificacion;
+    private LocalDate fechaDeModificacion;
     
     @Column(name = "titulo", length = 30, unique = true)
     private String titulo;

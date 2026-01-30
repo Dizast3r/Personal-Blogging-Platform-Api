@@ -19,7 +19,5 @@ public class BlogCreateDTO {
     @NotBlank(message = "El Contenido es obligatorio")
     private String contenido;
 
-    private Instant fechaDeCreacion;
-
     private List<TagDTO> blogTags;
 }

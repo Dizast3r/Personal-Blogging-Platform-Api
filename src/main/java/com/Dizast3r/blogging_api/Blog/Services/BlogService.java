@@ -6,10 +6,9 @@ package com.Dizast3r.blogging_api.Blog.Services;
 
 import com.Dizast3r.blogging_api.Blog.DTO.Request.Blog.BlogCreateDTO;
 import com.Dizast3r.blogging_api.Blog.DTO.Request.Blog.BlogModifyDTO;
+import com.Dizast3r.blogging_api.Blog.DTO.Request.Blog.BlogSearchDTO;
 import com.Dizast3r.blogging_api.Blog.DTO.Response.Blog.BlogResponseDTO;
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -22,9 +21,9 @@ public interface BlogService {
 
     public BlogResponseDTO getBlogById(UUID id);
 
-    public List<BlogResponseDTO> searchBlog(String titulo, LocalDateTime fechaMinima, LocalDateTime fechaMaxima, Set<String> tagNames);
+    public List<BlogResponseDTO> searchBlog(BlogSearchDTO blogSearchDTO);
 
-    public void modifyBlog(BlogModifyDTO blog);
+    public void modifyBlog(BlogModifyDTO blog, UUID id);
 
     public void deleteBlog(UUID id);
 

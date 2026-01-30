@@ -5,7 +5,7 @@
 package com.Dizast3r.blogging_api.Blog.Repositories;
 
 import com.Dizast3r.blogging_api.Blog.Entities.Blog;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -21,13 +21,13 @@ public interface BlogRepository extends JpaRepository<Blog, UUID> {
             + "FROM blog LEFT JOIN tag_map ON (blog.blog_id = tag_map.blog_id) "
             + "LEFT JOIN tag ON (tag_map.tag_id = tag.tag_id) "
             + "WHERE ("
-            + "(:titulo IS NULL OR blog.titulo ILIKE CONCAT('%', :titulo, '%')) "
-            + "AND ((:fecha_minima IS NULL OR blog.fecha_de_creacion >= :fecha_minima)) "
-            + "AND (:fecha_maxima IS NULL OR blog.fecha_de_creacion <= :fecha_maxima)"
-            + "AND (:tag_names IS NULL OR tag.nombre IN (:tag_names))"
+            + "(COALESCE(:titulo) IS NULL OR blog.titulo ILIKE CONCAT('%', :titulo, '%')) "
+            + "AND (COALESCE(:fecha_minima) IS NULL OR blog.fecha_de_creacion >= :fecha_minima) "
+            + "AND (COALESCE(:fecha_maxima) IS NULL OR blog.fecha_de_creacion <= :fecha_maxima) "
+            + "AND (COALESCE(:tag_names) IS NULL OR tag.nombre IN (:tag_names))"
             + ") ",
             nativeQuery = true)
     
-    List<Blog> searchAll (@Param("titulo") String titulo, @Param("fecha_minima") LocalDateTime fechaMinima, @Param("fecha_maxima") LocalDateTime fechaMaxima, 
+    List<Blog> searchAll (@Param("titulo") String titulo, @Param("fecha_minima") LocalDate fechaMinima, @Param("fecha_maxima") LocalDate fechaMaxima, 
                                       @Param("tag_names") Set<String> tagNames);
 }

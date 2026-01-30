@@ -50,7 +50,6 @@ public class BlogServiceImplTest {
             Blog blog = new Blog();
             blog.setTitulo(dto.getTitulo());
             blog.setContenido(dto.getContenido());
-            blog.setFechaDeCreacion(dto.getFechaDeCreacion());
             return blog;
         });
 
@@ -68,6 +67,7 @@ public class BlogServiceImplTest {
                     blog.getTitulo(),
                     blog.getContenido(),
                     blog.getFechaDeCreacion(),
+                    blog.getFechaDeModificacion(),
                     tagNames);
         });
     }
@@ -87,7 +87,6 @@ public class BlogServiceImplTest {
         BlogCreateDTO blogCreateDTO = new BlogCreateDTO(
                 "My First Blog",
                 "Content here",
-                Instant.now(),
                 tagDTOs);
 
         // Mock: TagService creates and returns normalized tag
@@ -127,7 +126,6 @@ public class BlogServiceImplTest {
         BlogCreateDTO blogCreateDTO = new BlogCreateDTO(
                 "Java Blog",
                 "Content about Java",
-                Instant.now(),
                 tagDTOs);
 
         // Mock: TagService returns existing tag (deduplication happens in TagService)
@@ -171,7 +169,6 @@ public class BlogServiceImplTest {
         BlogCreateDTO blogCreateDTO = new BlogCreateDTO(
                 "Polyglot",
                 "Content about multiple languages",
-                Instant.now(),
                 tagDTOs);
 
         // Mock: TagService handles both new and existing tags
@@ -215,7 +212,6 @@ public class BlogServiceImplTest {
         BlogCreateDTO blogCreateDTO = new BlogCreateDTO(
                 "No Tags Blog",
                 "Content without tags",
-                Instant.now(),
                 new ArrayList<>());
 
         // Mock: Blog save
