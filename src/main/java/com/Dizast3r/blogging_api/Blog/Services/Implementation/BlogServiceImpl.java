@@ -13,6 +13,8 @@ import com.Dizast3r.blogging_api.Blog.DTO.Request.Tag.TagDTO;
 import com.Dizast3r.blogging_api.Blog.DTO.Response.Blog.BlogResponseDTO;
 import com.Dizast3r.blogging_api.Blog.Entities.Blog;
 import com.Dizast3r.blogging_api.Blog.Entities.Tag;
+import com.Dizast3r.blogging_api.Blog.Exception.Custom.BlogAlreadyExistsException;
+import com.Dizast3r.blogging_api.Blog.Exception.Custom.BlogNotFoundException;
 import com.Dizast3r.blogging_api.Blog.Services.BlogService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -24,6 +26,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.springframework.dao.DataIntegrityViolationException;
 
 @Service
 public class BlogServiceImpl implements BlogService {
@@ -42,22 +45,27 @@ public class BlogServiceImpl implements BlogService {
 
     @Override
     public BlogResponseDTO createBlog(BlogCreateDTO blogDTO) {
-        Set<Tag> blogTags = new HashSet();
-        for (TagDTO tagDTO : blogDTO.getBlogTags()) {
-            blogTags.add(tagService.createTag(tagDTO));
+        try {
+            Set<Tag> blogTags = new HashSet();
+            for (TagDTO tagDTO : blogDTO.getBlogTags()) {
+                blogTags.add(tagService.createTag(tagDTO));
+            }
+
+            Blog blogGuardadoDB = mapperEntity.toEntityCreate(blogDTO);
+            blogGuardadoDB.setBlogTags(blogTags);
+            blogRepository.save(blogGuardadoDB);
+
+            return mapperDTO.toResponse(blogGuardadoDB);
+
+        } catch (DataIntegrityViolationException e) {
+            throw new BlogAlreadyExistsException(blogDTO.getTitulo());
         }
-
-        Blog blogGuardadoDB = mapperEntity.toEntityCreate(blogDTO);
-        blogGuardadoDB.setBlogTags(blogTags);
-        blogRepository.save(blogGuardadoDB);
-
-        return mapperDTO.toResponse(blogGuardadoDB);
     }
 
     @Override
     public BlogResponseDTO getBlogById(UUID id) {
         Blog blogDevolver = blogRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("No se encontro blog con el id dado"));
+                .orElseThrow(() -> new BlogNotFoundException(id));
         return mapperDTO.toResponse(blogDevolver);
     }
 
@@ -67,18 +75,23 @@ public class BlogServiceImpl implements BlogService {
         if (blogSearchDTO.isEmpty()) {
             return blogRepository.findAll().stream().map(mapperDTO::toResponse).collect(Collectors.toList());
         }
-
-        return blogRepository.searchAll(blogSearchDTO.getTitulo(),
+        
+        List<BlogResponseDTO> blogsEncontrados = blogRepository.searchAll(blogSearchDTO.getTitulo(),
                 blogSearchDTO.getFechaMinima(),
                 blogSearchDTO.getFechaMaxima(),
                 blogSearchDTO.getTagNames()).stream().map(mapperDTO::toResponse)
                 .collect(Collectors.toList());
+        
+        if(blogsEncontrados.isEmpty()) {
+            throw new BlogNotFoundException("No se encontro ningun blog con los parametros solicitados");
+        }
+        return blogsEncontrados;
     }
 
     @Override
     public void modifyBlog(BlogModifyDTO blogDTO, UUID id) {
         Blog nuevoBlogInfo = mapperEntity.toEntityModify(blogDTO);
-        Blog blogActualizar = blogRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("No se encontro blog con el id dado"));
+        Blog blogActualizar = blogRepository.findById(id).orElseThrow(() -> new BlogNotFoundException(id));
         blogActualizar.setTitulo(nuevoBlogInfo.getTitulo());
         blogActualizar.setContenido(nuevoBlogInfo.getContenido());
         Set<Tag> nuevosBlogTags = new HashSet<>();
