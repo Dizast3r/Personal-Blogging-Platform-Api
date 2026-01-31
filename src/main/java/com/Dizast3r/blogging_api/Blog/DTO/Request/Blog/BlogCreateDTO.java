@@ -11,11 +11,11 @@ import lombok.Data;
 @AllArgsConstructor
 public class BlogCreateDTO {
 
-    @NotBlank(message = "El titulo es obligatorio")
-    @Size(max = 30, message = "El titulo no puede tener mas de 30 caracteres")
+    @NotBlank(message = "The title is mandatory")
+    @Size(max = 30, message = "The title can't have more than 30 characters")
     private String titulo;
 
-    @NotBlank(message = "El Contenido es obligatorio")
+    @NotBlank(message = "The Content is mandatory")
     private String contenido;
 
     private List<TagDTO> blogTags;
