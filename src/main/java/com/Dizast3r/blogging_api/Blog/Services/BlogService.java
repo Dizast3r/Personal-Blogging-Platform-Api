@@ -23,7 +23,7 @@ public interface BlogService {
 
     public List<BlogResponseDTO> searchBlog(BlogSearchDTO blogSearchDTO);
 
-    public void modifyBlog(BlogModifyDTO blog, UUID id);
+    public BlogResponseDTO modifyBlog(BlogModifyDTO blog, UUID id);
 
     public void deleteBlog(UUID id);
 

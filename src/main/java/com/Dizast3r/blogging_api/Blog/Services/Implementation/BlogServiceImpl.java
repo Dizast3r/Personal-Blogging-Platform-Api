@@ -89,7 +89,7 @@ public class BlogServiceImpl implements BlogService {
     }
 
     @Override
-    public void modifyBlog(BlogModifyDTO blogDTO, UUID id) {
+    public BlogResponseDTO modifyBlog(BlogModifyDTO blogDTO, UUID id) {
         Blog nuevoBlogInfo = mapperEntity.toEntityModify(blogDTO);
         Blog blogActualizar = blogRepository.findById(id).orElseThrow(() -> new BlogNotFoundException(id));
         blogActualizar.setTitulo(nuevoBlogInfo.getTitulo());
@@ -99,12 +99,17 @@ public class BlogServiceImpl implements BlogService {
             nuevosBlogTags.add(tagService.createTag(tagDTO));
         }
         blogActualizar.setBlogTags(nuevosBlogTags);
-        blogRepository.save(blogActualizar);
+        return mapperDTO.toResponse(blogRepository.save(blogActualizar));
     }
 
     @Override
     public void deleteBlog(UUID id) {
-        blogRepository.deleteById(id);
+        if(blogRepository.existsById(id)) {
+            blogRepository.deleteById(id);
+        } else {
+            throw new BlogNotFoundException(id);
+        }
+        
     }
 
 }

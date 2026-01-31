@@ -15,6 +15,8 @@ import java.util.Set;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -33,30 +35,31 @@ public class BlogController {
     private BlogService blogService;
 
     @PostMapping
-    public BlogResponseDTO createBlog(@RequestBody BlogCreateDTO blogDTO) {
-        return blogService.createBlog(blogDTO);
+    public ResponseEntity<BlogResponseDTO> createBlog(@RequestBody BlogCreateDTO blogDTO) {
+        return new ResponseEntity<>(blogService.createBlog(blogDTO), HttpStatus.CREATED);
     }
 
     @GetMapping("/{id}")
-    public BlogResponseDTO getBlogById(@PathVariable UUID id) {
-        return blogService.getBlogById(id);
+    public ResponseEntity<BlogResponseDTO> getBlogById(@PathVariable UUID id) {
+        return new ResponseEntity<>(blogService.getBlogById(id),HttpStatus.FOUND);
     }
     
     @GetMapping("/search")
-    public List<BlogResponseDTO> searchBlog(@RequestParam(required = false) String titulo,
+    public ResponseEntity<List<BlogResponseDTO>> searchBlog(@RequestParam(required = false) String titulo,
                                                                           @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaMinima,
                                                                           @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaMaxima,
                                                                           @RequestParam(required = false) Set<String> tagNames) {
-        return blogService.searchBlog(new BlogSearchDTO(titulo, fechaMinima, fechaMaxima, tagNames));
+        return new ResponseEntity<>(blogService.searchBlog(new BlogSearchDTO(titulo, fechaMinima, fechaMaxima, tagNames)),HttpStatus.FOUND);
     }
     
     @PutMapping("/{id}")
-    public void modifyBlog(@RequestBody BlogModifyDTO blogModifyDTO, @PathVariable UUID id) {
-        blogService.modifyBlog(blogModifyDTO, id);
+    public ResponseEntity<BlogResponseDTO> modifyBlog(@RequestBody BlogModifyDTO blogModifyDTO, @PathVariable UUID id) {
+        return new ResponseEntity<>(blogService.modifyBlog(blogModifyDTO, id), HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
-    public void deleteBlog(@PathVariable UUID id) {
+    public ResponseEntity<String> deleteBlog(@PathVariable UUID id) {
         blogService.deleteBlog(id);
+        return new ResponseEntity<>("Se elimino correctamente el blog", HttpStatus.OK);
     }
 }
