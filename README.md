@@ -9,8 +9,8 @@ El sistema implementa las operaciones fundamentales de persistencia (CRUD) para 
 * **Listado de Artículos:** Recuperación de publicaciones con soporte para filtros por etiquetas y fecha de creación.
 * **Consulta Individual:** Obtención detallada de un artículo específico mediante su identificador único.
 * **Creación de Contenido:** Endpoint para la publicación de nuevos artículos.
-* **Actualización:** Capacidad de modificar el título, cuerpo o metadatos de artículos existentes.
-* **Eliminación:** Borrado físico o lógico de registros del sistema.
+* **Actualización:** Capacidad de modificar el título, cuerpo o tags de artículos existentes.
+* **Eliminación:** Borrado de registros de la base de datos.
 
 ## Stack Tecnológico
 Para garantizar la escalabilidad y el rendimiento de la aplicación, se han seleccionado las siguientes tecnologías:
